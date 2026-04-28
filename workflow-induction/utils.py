@@ -54,11 +54,22 @@ def compose_key_input(input_list: list[str]) -> str:
 import os
 from openai import OpenAI
 
-def call_llm(prompt: str, content = None, model_name: str = "gpt-4o") -> str:
-	client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+def call_llm(prompt: str, content = None, model_name: str | None = None) -> str:
+	"""Call an OpenAI-compatible chat-completions endpoint.
+
+	Resolution order:
+	  - model: `model_name` arg → $OPENAI_MODEL → "gpt-4o"
+	  - base_url: $OPENAI_BASE_URL → OpenAI default (api.openai.com)
+	  - api_key: $OPENAI_API_KEY → "EMPTY" (local servers like vLLM ignore the value)
+	"""
+	model = model_name or os.environ.get("OPENAI_MODEL", "gpt-4o")
+	client = OpenAI(
+		api_key=os.environ.get("OPENAI_API_KEY", "EMPTY"),
+		base_url=os.environ.get("OPENAI_BASE_URL"),
+	)
 	try:
 		response = client.chat.completions.create(
-			model=model_name,
+			model=model,
 			messages=[
 				{"role": "system", "content": prompt},
 				{"role": "user", "content": content},
@@ -67,5 +78,5 @@ def call_llm(prompt: str, content = None, model_name: str = "gpt-4o") -> str:
 		)
 		return response.choices[0].message.content
 	except Exception as e:
-		print(f"Error calling {model_name}: {type(e)}")
+		print(f"Error calling {model}: {type(e)}")
 		return ""

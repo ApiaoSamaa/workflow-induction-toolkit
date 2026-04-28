@@ -171,16 +171,23 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str, default="nodes1",
                         help="The directory to save the merged nodes.")
 
-    parser.add_argument("--model_name", type=str, 
-                        default="litellm/neulab/claude-3-5-sonnet-20241022",
-                        help="The model name to use for the LLM.")
+    parser.add_argument("--model_name", type=str, default=None,
+                        help="LLM model name. Falls back to $OPENAI_MODEL or gpt-4o.")
+    parser.add_argument("--base_url", type=str, default=None,
+                        help="OpenAI-compatible base URL (e.g. http://localhost:8000/v1 for a local vLLM server). "
+                             "Falls back to $OPENAI_BASE_URL or the OpenAI default.")
     parser.add_argument("--prompt_dir", type=str, default="prompts",
                         help="The directory containing the prompts.")
-    
+
     parser.add_argument("--auto", action="store_true", help="If automatically iterate and terminate workflow induction.")
     parser.add_argument("--verbose", action="store_true", help="Print details.")
-    
+
     args = parser.parse_args()
+
+    if args.model_name:
+        os.environ["OPENAI_MODEL"] = args.model_name
+    if args.base_url:
+        os.environ["OPENAI_BASE_URL"] = args.base_url
 
     if args.auto:
         auto_iterate()

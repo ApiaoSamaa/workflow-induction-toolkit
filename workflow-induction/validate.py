@@ -153,10 +153,19 @@ if __name__ == "__main__":
                         choices=["goal", "modularity"],
                         help="The metric to evaluate the workflow.")
 
-    parser.add_argument("--model_name", type=str, default="gpt-4o",)
-    
+    parser.add_argument("--model_name", type=str, default=None,
+                        help="LLM model name. Falls back to $OPENAI_MODEL or gpt-4o.")
+    parser.add_argument("--base_url", type=str, default=None,
+                        help="OpenAI-compatible base URL (e.g. http://localhost:8000/v1 for a local vLLM server). "
+                             "Falls back to $OPENAI_BASE_URL or the OpenAI default.")
+
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
+
+    if args.model_name:
+        os.environ["OPENAI_MODEL"] = args.model_name
+    if args.base_url:
+        os.environ["OPENAI_BASE_URL"] = args.base_url
 
     args.workflow_path = os.path.join(args.data_dir, "workflow.json")
     args.output_dir = os.path.join(args.data_dir, args.output_dir)
